@@ -60,6 +60,20 @@ export default async function AdminGroupsPage() {
                 </p>
                 <p className="text-xs text-slate-500">
                   {memberCountByGroup.get(g.id) ?? 0} members
+                  {g.passcode ? (
+                    <>
+                      {" "}
+                      &middot; passcode{" "}
+                      <span className="font-mono tracking-wider text-slate-700 dark:text-slate-300">
+                        {g.passcode}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-amber-600 dark:text-amber-400">
+                      {" "}
+                      &middot; no passcode set
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-3">

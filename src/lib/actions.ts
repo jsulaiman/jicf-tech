@@ -3,13 +3,17 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { mutateDB, newId } from "./db";
+import { mutateDB, newId, readDB } from "./db";
 import {
   ADMIN_COOKIE_NAME,
+  GROUP_ACCESS_COOKIE_NAME,
   checkAdminPassword,
   createAdminSessionValue,
+  createGroupAccessToken,
+  passcodesMatch,
 } from "./auth";
 import { buildAssignmentPairings } from "./assign";
+import { generatePasscode, normalizePasscode } from "./passcode";
 
 function str(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -43,15 +47,80 @@ export async function logoutAdmin(): Promise<void> {
   redirect("/admin/login");
 }
 
+// ---------- Group passcode access ----------
+
+export async function unlockGroup(formData: FormData): Promise<void> {
+  const groupId = str(formData, "groupId");
+  const passcode = normalizePasscode(str(formData, "passcode"));
+  const returnTo = str(formData, "returnTo") || "/";
+  const safeReturnTo = returnTo.startsWith("/") ? returnTo : "/";
+  const errorUrl = `${safeReturnTo}${safeReturnTo.includes("?") ? "&" : "?"}passcodeError=1`;
+
+  const db = await readDB();
+  const group = db.groups.find((g) => g.id === groupId);
+  if (!group || !passcodesMatch(group.passcode, passcode)) {
+    redirect(errorUrl);
+  }
+
+  const cookieStore = await cookies();
+  const existingRaw = cookieStore.get(GROUP_ACCESS_COOKIE_NAME)?.value;
+  let map: Record<string, string> = {};
+  if (existingRaw) {
+    try {
+      map = JSON.parse(existingRaw);
+    } catch {
+      map = {};
+    }
+  }
+  map[groupId] = createGroupAccessToken(groupId, group.passcode);
+
+  cookieStore.set(GROUP_ACCESS_COOKIE_NAME, JSON.stringify(map), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 90,
+    path: "/",
+  });
+  redirect(safeReturnTo);
+}
+
 // ---------- Groups ----------
 
 export async function createGroup(formData: FormData): Promise<void> {
   const name = str(formData, "name");
   if (!name) return;
   await mutateDB((db) => {
-    db.groups.push({ id: newId(), name, createdAt: new Date().toISOString() });
+    db.groups.push({
+      id: newId(),
+      name,
+      passcode: generatePasscode(),
+      createdAt: new Date().toISOString(),
+    });
   });
   revalidatePath("/admin/groups");
+}
+
+export async function regenerateGroupPasscode(formData: FormData): Promise<void> {
+  const groupId = str(formData, "groupId");
+  if (!groupId) return;
+  await mutateDB((db) => {
+    const group = db.groups.find((g) => g.id === groupId);
+    if (group) group.passcode = generatePasscode();
+  });
+  revalidatePath("/admin/groups");
+  revalidatePath(`/admin/groups/${groupId}`);
+}
+
+export async function setGroupPasscode(formData: FormData): Promise<void> {
+  const groupId = str(formData, "groupId");
+  const passcode = normalizePasscode(str(formData, "passcode"));
+  if (!groupId || !passcode) return;
+  await mutateDB((db) => {
+    const group = db.groups.find((g) => g.id === groupId);
+    if (group) group.passcode = passcode;
+  });
+  revalidatePath("/admin/groups");
+  revalidatePath(`/admin/groups/${groupId}`);
 }
 
 export async function renameGroup(formData: FormData): Promise<void> {

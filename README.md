@@ -53,11 +53,14 @@ the admin login page shows a setup message and refuses all logins. There is
 no per-admin account system — this is meant for the one or two people who
 run the Fellowship's groups, not for end members.
 
-Member-facing pages (`/submit`, `/my-assignments`, `/tracking`) have no
-login — members just pick their group and name from a dropdown. This app
-is meant for internal use within a trusted small group (the same people
-already share names and phone numbers with each other on the phone calls
-this app coordinates); don't expose it as a public, indexed site.
+Member-facing pages (`/submit`, `/my-assignments`, `/tracking`) require a
+per-group passcode: picking a group (or visiting `/submit?group=<id>`
+directly) prompts for that group's passcode before showing any of its
+members, commitments, or assignments — so one group can't see another's
+data. Admins set/regenerate each group's passcode from
+Admin → Groups → Manage members. A correct passcode is remembered in a
+signed, httpOnly cookie for 90 days; regenerating or changing a group's
+passcode immediately signs out anyone using the old one.
 
 ## How assignment works
 
@@ -77,7 +80,8 @@ mistake without wiping out tracked progress.
 
 See `src/lib/types.ts`:
 
-- **Group** — a small group (e.g. "Group 1")
+- **Group** — a small group (e.g. "Group 1"); has a shared `passcode`
+  members enter to access its pages
 - **Member** — belongs to a group; has a name and phone number;
   deactivating a member hides them from future weeks without deleting
   their history

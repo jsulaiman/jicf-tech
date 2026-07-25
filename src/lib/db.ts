@@ -44,10 +44,20 @@ function ensureTable(): Promise<void> {
   return initialized;
 }
 
+// Backfills fields added after some rows were already written (e.g. groups
+// created before Group.passcode existed) so older stored data still matches
+// the current Database shape.
+function normalize(db: Database): Database {
+  return {
+    ...db,
+    groups: db.groups.map((g) => ({ ...g, passcode: g.passcode ?? "" })),
+  };
+}
+
 export async function readDB(): Promise<Database> {
   await ensureTable();
   const { rows } = await pool.query("SELECT data FROM app_state WHERE id = 1");
-  return { ...EMPTY_DB, ...(rows[0]?.data ?? {}) };
+  return normalize({ ...EMPTY_DB, ...(rows[0]?.data ?? {}) });
 }
 
 /**
@@ -65,7 +75,7 @@ export async function mutateDB<T>(
     const { rows } = await client.query(
       "SELECT data FROM app_state WHERE id = 1 FOR UPDATE"
     );
-    const db: Database = { ...EMPTY_DB, ...(rows[0]?.data ?? {}) };
+    const db: Database = normalize({ ...EMPTY_DB, ...(rows[0]?.data ?? {}) });
     const result = await mutator(db);
     await client.query(
       "UPDATE app_state SET data = $1, updated_at = now() WHERE id = 1",

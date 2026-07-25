@@ -56,6 +56,16 @@ export async function getAssignmentsForPartner(
   return db.assignments.filter((a) => a.partnerMemberId === memberId);
 }
 
+export async function getCommitmentsForGroup(groupId: string): Promise<Commitment[]> {
+  const db = await readDB();
+  return db.commitments.filter((c) => c.groupId === groupId);
+}
+
+export async function getAssignmentsForGroup(groupId: string): Promise<Assignment[]> {
+  const db = await readDB();
+  return db.assignments.filter((a) => a.groupId === groupId);
+}
+
 export async function getFullState() {
   return readDB();
 }
