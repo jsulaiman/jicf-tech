@@ -19,16 +19,18 @@ Each week:
 
 - Next.js 16 (App Router, Server Actions) + React 19 + TypeScript
 - Tailwind CSS 4
-- Data storage: a single JSON file (`data/db.json`), read/written through
-  `src/lib/db.ts`. This is intentionally simple for a group this size (a
-  few hundred records a year) — no database server to run or manage. The
-  file is created automatically on first run.
+- Data storage: Postgres, via `src/lib/db.ts`. All app state (groups,
+  members, cycles, commitments, assignments) lives as a single JSONB blob
+  in one row — intentionally simple for a group this size (a few hundred
+  records a year), while still persisting correctly across the
+  short-lived, multi-instance processes serverless deployments use. The
+  table is created automatically on first use.
 
 ## Getting started
 
 ```bash
 npm install
-cp .env.example .env.local   # then edit ADMIN_PASSWORD
+cp .env.example .env.local   # then edit ADMIN_PASSWORD and POSTGRES_URL
 npm run dev
 ```
 
@@ -88,10 +90,9 @@ See `src/lib/types.ts`:
 
 ```bash
 npm run build
-ADMIN_PASSWORD=... npm run start
+ADMIN_PASSWORD=... POSTGRES_URL=... npm run start
 ```
 
-Deploy anywhere that can run a persistent Node.js server with a writable
-`data/` directory (the JSON file needs to survive restarts and be on a
-single persistent disk — this won't work on purely serverless/edge
-deployments without adapting the storage layer).
+Deploys to Vercel (or anywhere else that can reach a Postgres database) —
+state lives in Postgres rather than on local disk, so it survives restarts,
+cold starts, and multiple concurrent instances.

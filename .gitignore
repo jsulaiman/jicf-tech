@@ -37,10 +37,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-# app data (runtime state, generated at first run)
-/data/db.json
-/data/session-secret
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
