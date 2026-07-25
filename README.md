@@ -1,1 +1,97 @@
-# jicf-tech
+# JICF Men's Fellowship — Obedience Accountability
+
+A weekly obedience-accountability tracker for JICF Men's Fellowship small
+groups (up to ~7 people per group, ~10 groups).
+
+Each week:
+
+1. Every member submits the specific act of obedience to God he's
+   committing to, plus his name and phone number.
+2. An admin runs a random assignment per group: every commitment card is
+   handed to a different member of that same group (never back to the
+   person who wrote it).
+3. That member calls the person, prays for the commitment, and marks the
+   call and the prayer as done, with optional notes.
+4. Everyone can watch submission / assignment / call / prayer status for
+   the week on the Tracking page.
+
+## Stack
+
+- Next.js 16 (App Router, Server Actions) + React 19 + TypeScript
+- Tailwind CSS 4
+- Data storage: a single JSON file (`data/db.json`), read/written through
+  `src/lib/db.ts`. This is intentionally simple for a group this size (a
+  few hundred records a year) — no database server to run or manage. The
+  file is created automatically on first run.
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env.local   # then edit ADMIN_PASSWORD
+npm run dev
+```
+
+Open http://localhost:3000.
+
+- `/` — overview
+- `/submit` — members submit their weekly obedience commitment
+- `/my-assignments` — members see who they've been assigned to call, mark
+  called/prayed, and leave notes
+- `/tracking` — read-only dashboard of submitted/assigned/called/prayed
+  status per group, per week
+- `/admin` — create groups & members, start/close weekly cycles, run the
+  random assignment (password-protected, see below)
+
+## Admin access
+
+`/admin/*` is protected by a single shared password, set via the
+`ADMIN_PASSWORD` environment variable (see `.env.example`). Without it set,
+the admin login page shows a setup message and refuses all logins. There is
+no per-admin account system — this is meant for the one or two people who
+run the Fellowship's groups, not for end members.
+
+Member-facing pages (`/submit`, `/my-assignments`, `/tracking`) have no
+login — members just pick their group and name from a dropdown. This app
+is meant for internal use within a trusted small group (the same people
+already share names and phone numbers with each other on the phone calls
+this app coordinates); don't expose it as a public, indexed site.
+
+## How assignment works
+
+`src/lib/assign.ts` implements the random pairing: given the commitment
+cards submitted for a group this week, it builds a "derangement" — a
+random pairing where no one is ever assigned their own card, and partners
+are distributed as evenly as possible when the number of cards and members
+don't match exactly (e.g. someone didn't submit that week). If a group
+somehow only has one distinct submitter, that one card is left
+self-assigned and flagged in the admin UI, since no partner is possible.
+
+Re-running the assignment for a group is only allowed before any call or
+prayer has been logged for that week, so admins can safely re-shuffle a
+mistake without wiping out tracked progress.
+
+## Data model
+
+See `src/lib/types.ts`:
+
+- **Group** — a small group (e.g. "Group 1")
+- **Member** — belongs to a group; has a name and phone number;
+  deactivating a member hides them from future weeks without deleting
+  their history
+- **Cycle** — a week; only one is "open" for submissions at a time
+- **Commitment** — one member's obedience commitment for one cycle
+- **Assignment** — pairs a commitment with the partner responsible for
+  calling/praying, plus `calledAt`, `prayedAt`, and free-text `notes`
+
+## Production
+
+```bash
+npm run build
+ADMIN_PASSWORD=... npm run start
+```
+
+Deploy anywhere that can run a persistent Node.js server with a writable
+`data/` directory (the JSON file needs to survive restarts and be on a
+single persistent disk — this won't work on purely serverless/edge
+deployments without adapting the storage layer).
