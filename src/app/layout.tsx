@@ -52,7 +52,15 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="text-center text-xs text-slate-400 py-6">
-          Obedience Accountability &middot; JICF Men&apos;s Fellowship
+          Obedience Accountability &middot; JICF Men&apos;s Fellowship &middot;{" "}
+          <a
+            href="https://www.jicf.org/men/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-slate-600 dark:hover:text-slate-300"
+          >
+            jicf.org/men
+          </a>
         </footer>
       </body>
     </html>

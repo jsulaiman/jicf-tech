@@ -1,5 +1,6 @@
 import { getOpenCycle, getGroups, getCommitments, getMembers } from "@/lib/repo";
 import HowItWorksGuide from "@/app/components/HowItWorksGuide";
+import CurrentSeriesCard from "@/app/components/CurrentSeriesCard";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,8 @@ export default async function HomePage() {
           to call, keep him accountable, and pray for him.
         </p>
       </section>
+
+      <CurrentSeriesCard />
 
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-5 bg-white dark:bg-slate-900">
