@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { toggleCalled, togglePrayed, saveAssignmentNotes } from "@/lib/actions";
 import SubmitButton from "@/app/components/SubmitButton";
-import type { Assignment, Commitment, Cycle, Group, Member } from "@/lib/types";
+import ShareCompletionButton from "./ShareCompletionButton";
+import type { Assignment, Commitment, Cycle, Member } from "@/lib/types";
 
 function formatDateTime(iso: string | null): string {
   if (!iso) return "";
@@ -16,28 +17,21 @@ function formatDateTime(iso: string | null): string {
 }
 
 export default function AssignmentsView({
-  groups,
   members,
   cycles,
   commitments,
   assignments,
 }: {
-  groups: Group[];
   members: Member[];
   cycles: Cycle[];
   commitments: Commitment[];
   assignments: Assignment[];
 }) {
-  const [groupId, setGroupId] = useState("");
   const [memberId, setMemberId] = useState("");
 
-  const sortedGroups = useMemo(
-    () => [...groups].sort((a, b) => a.name.localeCompare(b.name)),
-    [groups]
-  );
-  const groupMembers = useMemo(
-    () => members.filter((m) => m.groupId === groupId && m.active),
-    [members, groupId]
+  const activeMembers = useMemo(
+    () => [...members].filter((m) => m.active).sort((a, b) => a.name.localeCompare(b.name)),
+    [members]
   );
 
   const cycleById = useMemo(() => new Map(cycles.map((c) => [c.id, c])), [cycles]);
@@ -67,47 +61,23 @@ export default function AssignmentsView({
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-5 bg-white dark:bg-slate-900 space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Your group
+            Your name
           </label>
           <select
-            value={groupId}
-            onChange={(e) => {
-              setGroupId(e.target.value);
-              setMemberId("");
-            }}
+            value={memberId}
+            onChange={(e) => setMemberId(e.target.value)}
             className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
           >
             <option value="" disabled>
-              Select your group
+              Select your name
             </option>
-            {sortedGroups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
+            {activeMembers.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
               </option>
             ))}
           </select>
         </div>
-        {groupId && (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Your name
-            </label>
-            <select
-              value={memberId}
-              onChange={(e) => setMemberId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
-            >
-              <option value="" disabled>
-                Select your name
-              </option>
-              {groupMembers.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
 
       {memberId && (
@@ -193,6 +163,17 @@ export default function AssignmentsView({
                     Save
                   </SubmitButton>
                 </form>
+
+                <ShareCompletionButton
+                  ownerName={memberById.get(commitment!.memberId)?.name ?? "Unknown"}
+                  calledLabel={
+                    assignment.calledAt ? formatDateTime(assignment.calledAt) : null
+                  }
+                  prayedLabel={
+                    assignment.prayedAt ? formatDateTime(assignment.prayedAt) : null
+                  }
+                  notes={assignment.notes}
+                />
               </div>
             ))
           )}

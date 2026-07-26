@@ -49,3 +49,44 @@ export async function isValidAdminSessionValue(
 }
 
 export const ADMIN_COOKIE_NAME = ADMIN_COOKIE;
+
+// ---------- Group passcode access ----------
+//
+// Signed proof that a browser entered a given group's current passcode.
+// Binding the token to the passcode value itself (rather than just the
+// group id) means rotating a group's passcode automatically invalidates
+// every previously issued token for it — no separate revocation bookkeeping
+// needed.
+
+export const GROUP_ACCESS_COOKIE_NAME = "jicf_group_access";
+
+function groupAccessToken(groupId: string, passcode: string): string {
+  return createHmac("sha256", getSecret())
+    .update(`group-access:${groupId}:${passcode}`)
+    .digest("hex");
+}
+
+export function createGroupAccessToken(groupId: string, passcode: string): string {
+  return groupAccessToken(groupId, passcode);
+}
+
+export function isValidGroupAccessToken(
+  groupId: string,
+  passcode: string,
+  token: string | undefined
+): boolean {
+  if (!token || !passcode) return false;
+  const expected = groupAccessToken(groupId, passcode);
+  const a = Buffer.from(token);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
+export function passcodesMatch(stored: string, entered: string): boolean {
+  if (!stored) return false;
+  const a = Buffer.from(stored);
+  const b = Buffer.from(entered);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}

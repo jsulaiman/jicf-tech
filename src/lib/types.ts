@@ -3,6 +3,10 @@ export type CycleStatus = "open" | "closed";
 export interface Group {
   id: string;
   name: string;
+  /** Shared passcode members enter to view this group's submit/assignments/
+   * tracking pages. Empty string means no passcode has been set yet — those
+   * pages stay locked until an admin sets one. */
+  passcode: string;
   createdAt: string;
 }
 

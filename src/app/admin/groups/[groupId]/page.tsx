@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getGroup, getMembers } from "@/lib/repo";
-import { addMember, updateMember, setMemberActive, renameGroup } from "@/lib/actions";
+import {
+  addMember,
+  updateMember,
+  setMemberActive,
+  renameGroup,
+  regenerateGroupPasscode,
+  setGroupPasscode,
+} from "@/lib/actions";
 import SubmitButton from "@/app/components/SubmitButton";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +50,51 @@ export default async function AdminGroupMembersPage({
             Save name
           </SubmitButton>
         </form>
+      </section>
+
+      <section className="rounded-xl border border-slate-200 dark:border-slate-800 p-5 bg-white dark:bg-slate-900">
+        <h2 className="font-semibold text-slate-900 dark:text-slate-100 mb-3">
+          Member passcode
+        </h2>
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
+          Members enter this to view {group.name}&apos;s submit, my
+          assignments, and tracking pages. Share it only with this group.
+          Regenerating or changing it signs out anyone currently using it.
+        </p>
+        {group.passcode ? (
+          <p className="mb-3 text-lg font-mono tracking-widest text-slate-900 dark:text-slate-100">
+            {group.passcode}
+          </p>
+        ) : (
+          <p className="mb-3 text-sm text-amber-600 dark:text-amber-400">
+            No passcode set yet — members can&apos;t access this group until
+            you set one.
+          </p>
+        )}
+        <div className="flex flex-wrap items-end gap-3">
+          <form action={regenerateGroupPasscode}>
+            <input type="hidden" name="groupId" value={group.id} />
+            <SubmitButton className="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50">
+              Generate new random passcode
+            </SubmitButton>
+          </form>
+          <form action={setGroupPasscode} className="flex flex-wrap items-end gap-3">
+            <input type="hidden" name="groupId" value={group.id} />
+            <div>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                Or set a custom passcode
+              </label>
+              <input
+                name="passcode"
+                placeholder="e.g. GROUP1"
+                className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm font-mono tracking-wider uppercase"
+              />
+            </div>
+            <SubmitButton className="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50">
+              Save
+            </SubmitButton>
+          </form>
+        </div>
       </section>
 
       <section className="rounded-xl border border-slate-200 dark:border-slate-800 p-5 bg-white dark:bg-slate-900">
