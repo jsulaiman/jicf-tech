@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { toggleCalled, togglePrayed, saveAssignmentNotes } from "@/lib/actions";
 import SubmitButton from "@/app/components/SubmitButton";
+import ShareCompletionButton from "./ShareCompletionButton";
 import type { Assignment, Commitment, Cycle, Member } from "@/lib/types";
 
 function formatDateTime(iso: string | null): string {
@@ -162,6 +163,17 @@ export default function AssignmentsView({
                     Save
                   </SubmitButton>
                 </form>
+
+                <ShareCompletionButton
+                  ownerName={memberById.get(commitment!.memberId)?.name ?? "Unknown"}
+                  calledLabel={
+                    assignment.calledAt ? formatDateTime(assignment.calledAt) : null
+                  }
+                  prayedLabel={
+                    assignment.prayedAt ? formatDateTime(assignment.prayedAt) : null
+                  }
+                  notes={assignment.notes}
+                />
               </div>
             ))
           )}

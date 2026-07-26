@@ -23,6 +23,18 @@ function formatDate(iso: string | null): string {
   });
 }
 
+function buildAssignmentShareText(
+  groupName: string,
+  cycleLabel: string,
+  pairs: { ownerName: string; partnerName: string; selfAssigned: boolean }[]
+): string {
+  const lines = pairs.map(
+    ({ ownerName, partnerName, selfAssigned }) =>
+      `• ${ownerName} → ${partnerName}${selfAssigned ? " (no partner available)" : ""}`
+  );
+  return `📋 *${groupName}* — ${cycleLabel}\nAccountability assignments:\n${lines.join("\n")}`;
+}
+
 export default async function AdminCyclePage({
   params,
 }: {
@@ -163,20 +175,49 @@ export default async function AdminCyclePage({
                     </tbody>
                   </table>
                 </div>
-                {hasProgress ? (
-                  <p className="text-xs text-slate-500">
-                    Assignment locked — calls or prayers have already been
-                    logged this week.
-                  </p>
-                ) : (
-                  <form action={runAssignment}>
-                    <input type="hidden" name="cycleId" value={cycle.id} />
-                    <input type="hidden" name="groupId" value={group.id} />
-                    <SubmitButton className="text-sm text-slate-500 underline disabled:opacity-50">
-                      Re-shuffle assignment
-                    </SubmitButton>
-                  </form>
-                )}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  {hasProgress ? (
+                    <p className="text-xs text-slate-500">
+                      Assignment locked — calls or prayers have already been
+                      logged this week.
+                    </p>
+                  ) : (
+                    <form action={runAssignment}>
+                      <input type="hidden" name="cycleId" value={cycle.id} />
+                      <input type="hidden" name="groupId" value={group.id} />
+                      <SubmitButton className="text-sm text-slate-500 underline disabled:opacity-50">
+                        Re-shuffle assignment
+                      </SubmitButton>
+                    </form>
+                  )}
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      buildAssignmentShareText(
+                        group.name,
+                        cycle.label,
+                        groupAssignments.map((a) => {
+                          const commitment = groupCommitments.find(
+                            (c) => c.id === a.commitmentId
+                          );
+                          const owner = commitment
+                            ? memberById.get(commitment.memberId)
+                            : undefined;
+                          const partner = memberById.get(a.partnerMemberId);
+                          return {
+                            ownerName: owner?.name ?? "Unknown",
+                            partnerName: partner?.name ?? "Unknown",
+                            selfAssigned: a.selfAssigned,
+                          };
+                        })
+                      )
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block rounded-lg bg-green-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-green-700"
+                  >
+                    Share to WhatsApp
+                  </a>
+                </div>
               </div>
             )}
           </section>

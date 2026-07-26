@@ -76,6 +76,21 @@ Re-running the assignment for a group is only allowed before any call or
 prayer has been logged for that week, so admins can safely re-shuffle a
 mistake without wiping out tracked progress.
 
+## WhatsApp sharing
+
+Two "Share to WhatsApp" buttons open `wa.me` with a pre-filled message —
+you pick the destination (a group chat, a DM) in WhatsApp itself; nothing
+is sent automatically or to a fixed number.
+
+- **Weekly assignment summary** (Admin → the week's page, per group): once
+  assignment has been run, shares the full pairing list for that group and
+  week.
+- **Completion check-in** (`/my-assignments`, per assignment card): appears
+  once you've marked called and/or prayed. Shares who it's for, which
+  actions are done, and the timestamps. Your call notes are only included
+  if you tick "Include call notes in the shared message" — off by default,
+  since notes can be personal.
+
 ## Data model
 
 See `src/lib/types.ts`:
