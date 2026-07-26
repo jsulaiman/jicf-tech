@@ -4,11 +4,13 @@ import { useMemo, useState } from "react";
 
 export default function ShareCompletionButton({
   ownerName,
+  callerName,
   calledLabel,
   prayedLabel,
   notes,
 }: {
   ownerName: string;
+  callerName: string;
   calledLabel: string | null;
   prayedLabel: string | null;
   notes: string;
@@ -23,14 +25,25 @@ export default function ShareCompletionButton({
 
   const message = useMemo(() => {
     const lines = [
-      `✅ Accountability check-in for ${ownerName}`,
+      `✅ Accountability check-in`,
+      `For: ${ownerName}`,
+      `By: ${callerName}`,
       actionLabel && `Action: ${actionLabel}`,
       calledLabel && `Called: ${calledLabel}`,
       prayedLabel && `Prayed: ${prayedLabel}`,
       includeNotes && hasNotes ? `Notes: ${notes.trim()}` : null,
     ];
     return lines.filter(Boolean).join("\n");
-  }, [ownerName, actionLabel, calledLabel, prayedLabel, includeNotes, hasNotes, notes]);
+  }, [
+    ownerName,
+    callerName,
+    actionLabel,
+    calledLabel,
+    prayedLabel,
+    includeNotes,
+    hasNotes,
+    notes,
+  ]);
 
   if (!canShare) return null;
 

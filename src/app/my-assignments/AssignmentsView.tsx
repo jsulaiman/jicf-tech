@@ -166,6 +166,7 @@ export default function AssignmentsView({
 
                 <ShareCompletionButton
                   ownerName={memberById.get(commitment!.memberId)?.name ?? "Unknown"}
+                  callerName={memberById.get(memberId)?.name ?? "Unknown"}
                   calledLabel={
                     assignment.calledAt ? formatDateTime(assignment.calledAt) : null
                   }

@@ -9,6 +9,7 @@ import {
 } from "@/lib/repo";
 import { runAssignment, closeCycle, reopenCycle } from "@/lib/actions";
 import SubmitButton from "@/app/components/SubmitButton";
+import { buildGroupSummaryText, buildMinistrySummaryText } from "@/lib/shareText";
 import type { Member } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,48 @@ export default async function AdminCyclePage({
 
   const memberById = new Map<string, Member>(allMembers.map((m) => [m.id, m]));
 
+  const groupStats = groups.map((group) => {
+    const groupMembers = allMembers.filter(
+      (m) => m.groupId === group.id && m.active
+    );
+    const groupCommitments = commitments.filter((c) => c.groupId === group.id);
+    const groupAssignments = assignments.filter((a) => a.groupId === group.id);
+    const pendingCalls = groupAssignments
+      .filter((a) => !a.calledAt)
+      .map((a) => {
+        const commitment = groupCommitments.find((c) => c.id === a.commitmentId);
+        const owner = commitment ? memberById.get(commitment.memberId) : undefined;
+        const partner = memberById.get(a.partnerMemberId);
+        return `${owner?.name ?? "Unknown"} (partner: ${partner?.name ?? "Unknown"})`;
+      });
+    return {
+      group,
+      totalActive: groupMembers.length,
+      submitted: groupCommitments.length,
+      assigned: groupAssignments.length,
+      called: groupAssignments.filter((a) => a.calledAt).length,
+      prayed: groupAssignments.filter((a) => a.prayedAt).length,
+      pendingCalls,
+    };
+  });
+
+  const ministryTotals = groupStats.reduce(
+    (acc, g) => ({
+      totalActive: acc.totalActive + g.totalActive,
+      submitted: acc.submitted + g.submitted,
+      assigned: acc.assigned + g.assigned,
+      called: acc.called + g.called,
+      prayed: acc.prayed + g.prayed,
+    }),
+    { totalActive: 0, submitted: 0, assigned: 0, called: 0, prayed: 0 }
+  );
+
+  const ministryShareText = buildMinistrySummaryText(
+    cycle.label,
+    ministryTotals,
+    groupStats.map((g) => ({ groupName: g.group.name, ...g }))
+  );
+
   return (
     <div className="space-y-8">
       <div>
@@ -81,10 +124,41 @@ export default async function AdminCyclePage({
         </div>
       </div>
 
-      {groups.map((group) => {
-        const groupMembers = allMembers.filter(
-          (m) => m.groupId === group.id && m.active
-        );
+      <section className="rounded-xl border border-slate-200 dark:border-slate-800 p-5 bg-white dark:bg-slate-900">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">
+            Ministry-wide summary
+          </h2>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(ministryShareText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block rounded-lg bg-green-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-green-700"
+          >
+            Share to WhatsApp
+          </a>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          {[
+            { label: "Submitted", value: ministryTotals.submitted, total: ministryTotals.totalActive },
+            { label: "Assigned", value: ministryTotals.assigned, total: ministryTotals.submitted },
+            { label: "Called", value: ministryTotals.called, total: ministryTotals.assigned },
+            { label: "Prayed", value: ministryTotals.prayed, total: ministryTotals.assigned },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-lg border border-slate-200 dark:border-slate-800 p-3"
+            >
+              <p className="text-xs text-slate-500">{stat.label}</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                {stat.value}/{stat.total}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {groupStats.map(({ group, ...stats }) => {
         const groupCommitments = commitments.filter(
           (c) => c.groupId === group.id
         );
@@ -93,6 +167,12 @@ export default async function AdminCyclePage({
         );
         const hasProgress = groupAssignments.some(
           (a) => a.calledAt || a.prayedAt || a.notes
+        );
+        const groupSummaryShareText = buildGroupSummaryText(
+          group.name,
+          cycle.label,
+          stats,
+          stats.pendingCalls
         );
 
         return (
@@ -105,7 +185,7 @@ export default async function AdminCyclePage({
                 {group.name}
               </h2>
               <span className="text-sm text-slate-500">
-                {groupCommitments.length}/{groupMembers.length} submitted
+                {groupCommitments.length}/{stats.totalActive} submitted
               </span>
             </div>
 
@@ -190,33 +270,43 @@ export default async function AdminCyclePage({
                       </SubmitButton>
                     </form>
                   )}
-                  <a
-                    href={`https://wa.me/?text=${encodeURIComponent(
-                      buildAssignmentShareText(
-                        group.name,
-                        cycle.label,
-                        groupAssignments.map((a) => {
-                          const commitment = groupCommitments.find(
-                            (c) => c.id === a.commitmentId
-                          );
-                          const owner = commitment
-                            ? memberById.get(commitment.memberId)
-                            : undefined;
-                          const partner = memberById.get(a.partnerMemberId);
-                          return {
-                            ownerName: owner?.name ?? "Unknown",
-                            partnerName: partner?.name ?? "Unknown",
-                            selfAssigned: a.selfAssigned,
-                          };
-                        })
-                      )
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block rounded-lg bg-green-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-green-700"
-                  >
-                    Share to WhatsApp
-                  </a>
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(
+                        buildAssignmentShareText(
+                          group.name,
+                          cycle.label,
+                          groupAssignments.map((a) => {
+                            const commitment = groupCommitments.find(
+                              (c) => c.id === a.commitmentId
+                            );
+                            const owner = commitment
+                              ? memberById.get(commitment.memberId)
+                              : undefined;
+                            const partner = memberById.get(a.partnerMemberId);
+                            return {
+                              ownerName: owner?.name ?? "Unknown",
+                              partnerName: partner?.name ?? "Unknown",
+                              selfAssigned: a.selfAssigned,
+                            };
+                          })
+                        )
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block rounded-lg border border-green-600 text-green-700 dark:text-green-400 px-3 py-1.5 text-sm font-medium hover:bg-green-50 dark:hover:bg-green-950/40"
+                    >
+                      Share assignments
+                    </a>
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(groupSummaryShareText)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block rounded-lg bg-green-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-green-700"
+                    >
+                      Share weekly summary
+                    </a>
+                  </div>
                 </div>
               </div>
             )}

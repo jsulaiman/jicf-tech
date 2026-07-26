@@ -8,6 +8,7 @@ import {
   getAssignmentsForGroup,
 } from "@/lib/repo";
 import { hasGroupAccess } from "@/lib/groupAccess";
+import { buildGroupSummaryText } from "@/lib/shareText";
 import GroupPicker from "@/app/components/GroupPicker";
 import GroupPasscodeGate from "@/app/components/GroupPasscodeGate";
 import CycleSelect from "./CycleSelect";
@@ -99,6 +100,23 @@ export default async function TrackingPage({
   const totalCalled = rows.filter((r) => r.assignment?.calledAt).length;
   const totalPrayed = rows.filter((r) => r.assignment?.prayedAt).length;
 
+  const pendingCalls = rows
+    .filter((r) => r.assignment && !r.assignment.calledAt)
+    .map((r) => `${r.member.name} (partner: ${r.partner?.name ?? "Unknown"})`);
+
+  const summaryShareText = buildGroupSummaryText(
+    group.name,
+    selectedCycle.label,
+    {
+      totalActive,
+      submitted: totalSubmitted,
+      assigned: totalAssigned,
+      called: totalCalled,
+      prayed: totalPrayed,
+    },
+    pendingCalls
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -108,7 +126,17 @@ export default async function TrackingPage({
           </h1>
           <p className="text-sm text-slate-500">{group.name}</p>
         </div>
-        <CycleSelect cycles={cycles} selectedCycleId={selectedCycle.id} groupId={groupId} />
+        <div className="flex items-center gap-3">
+          <CycleSelect cycles={cycles} selectedCycleId={selectedCycle.id} groupId={groupId} />
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(summaryShareText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block rounded-lg bg-green-600 text-white px-3 py-1.5 text-sm font-medium hover:bg-green-700 whitespace-nowrap"
+          >
+            Share weekly summary
+          </a>
+        </div>
       </div>
 
       <section className="grid gap-3 sm:grid-cols-4">

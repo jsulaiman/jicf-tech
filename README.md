@@ -86,10 +86,16 @@ is sent automatically or to a fixed number.
   assignment has been run, shares the full pairing list for that group and
   week.
 - **Completion check-in** (`/my-assignments`, per assignment card): appears
-  once you've marked called and/or prayed. Shares who it's for, which
-  actions are done, and the timestamps. Your call notes are only included
-  if you tick "Include call notes in the shared message" — off by default,
-  since notes can be personal.
+  once you've marked called and/or prayed. Shares who it's for, **who did
+  the calling**, which actions are done, and the timestamps. Your call
+  notes are only included if you tick "Include call notes in the shared
+  message" — off by default, since notes can be personal.
+- **Group weekly summary** (`/tracking`, per group): submitted / assigned /
+  called / prayed counts for the group and week, plus who still needs a
+  call. Meant for a group's own leader to share with their group.
+- **Ministry-wide weekly summary** (Admin → the week's page, top of the
+  page): the same stats aggregated across every group, with a per-group
+  breakdown line. Meant for admin to share with ministry leadership.
 
 ## Data model
 
