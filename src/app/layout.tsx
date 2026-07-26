@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
+import logo from "../../public/logo.png";
 
 export const metadata: Metadata = {
   title: "JICF Men's Fellowship — Obedience Accountability",
@@ -26,7 +28,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <header className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur sticky top-0 z-10">
           <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2">
-            <Link href="/" className="font-semibold text-slate-900 dark:text-slate-100">
+            <Link
+              href="/"
+              className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100"
+            >
+              <Image src={logo} alt="" width={28} height={28} className="rounded-full" />
               JICF Men&apos;s Fellowship
             </Link>
             <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
