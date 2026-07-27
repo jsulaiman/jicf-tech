@@ -78,9 +78,11 @@ mistake without wiping out tracked progress.
 
 ## WhatsApp sharing
 
-Two "Share to WhatsApp" buttons open `wa.me` with a pre-filled message —
-you pick the destination (a group chat, a DM) in WhatsApp itself; nothing
-is sent automatically or to a fixed number.
+Most of these open `wa.me` with a pre-filled message and no fixed
+recipient — you pick the destination (a group chat, a DM) in WhatsApp
+itself. The two **Remind** links are the exception: they're addressed
+directly to that one person's own phone number (already on file), since a
+reminder is for them, not a broadcast.
 
 - **Weekly assignment summary** (Admin → the week's page, per group): once
   assignment has been run, shares the full pairing list for that group and
@@ -96,6 +98,12 @@ is sent automatically or to a fixed number.
 - **Ministry-wide weekly summary** (Admin → the week's page, top of the
   page): the same stats aggregated across every group, with a per-group
   breakdown line. Meant for admin to share with ministry leadership.
+- **Remind** (`/tracking`, next to each pending row): a one-tap WhatsApp
+  message straight to the specific person who still needs to submit their
+  commitment, or to the specific partner who still needs to make their
+  call — not a group broadcast. The call reminder never includes the
+  commitment text itself, since `/tracking` doesn't expose that to begin
+  with.
 
 ## Data model
 

@@ -8,7 +8,12 @@ import {
   getAssignmentsForGroup,
 } from "@/lib/repo";
 import { hasGroupAccess } from "@/lib/groupAccess";
-import { buildGroupSummaryText } from "@/lib/shareText";
+import {
+  buildGroupSummaryText,
+  buildSubmitReminderText,
+  buildCallReminderText,
+  waDirectLink,
+} from "@/lib/shareText";
 import GroupPicker from "@/app/components/GroupPicker";
 import GroupPasscodeGate from "@/app/components/GroupPasscodeGate";
 import CycleSelect from "./CycleSelect";
@@ -188,7 +193,20 @@ export default async function TrackingPage({
                           ✓ {formatDate(commitment.submittedAt)}
                         </span>
                       ) : (
-                        <span className="text-slate-400">not yet</span>
+                        <span className="inline-flex items-center gap-2">
+                          <span className="text-slate-400">not yet</span>
+                          <a
+                            href={waDirectLink(
+                              member.phone,
+                              buildSubmitReminderText(member.name, selectedCycle.label)
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-green-700 dark:text-green-400 underline whitespace-nowrap"
+                          >
+                            Remind
+                          </a>
+                        </span>
                       )}
                     </td>
                     <td className="py-2 pr-4">
@@ -208,7 +226,22 @@ export default async function TrackingPage({
                           ✓ {formatDate(assignment.calledAt)}
                         </span>
                       ) : assignment ? (
-                        <span className="text-amber-600 dark:text-amber-400">pending</span>
+                        <span className="inline-flex items-center gap-2">
+                          <span className="text-amber-600 dark:text-amber-400">pending</span>
+                          {partner && (
+                            <a
+                              href={waDirectLink(
+                                partner.phone,
+                                buildCallReminderText(partner.name, member.name)
+                              )}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-green-700 dark:text-green-400 underline whitespace-nowrap"
+                            >
+                              Remind
+                            </a>
+                          )}
+                        </span>
                       ) : (
                         <span className="text-slate-400">—</span>
                       )}

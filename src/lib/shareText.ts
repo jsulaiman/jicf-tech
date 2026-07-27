@@ -1,3 +1,10 @@
+// wa.me requires digits only (no "+", spaces, or punctuation) for a direct-
+// to-number link, unlike the untargeted https://wa.me/?text=... share links.
+export function waDirectLink(phone: string, text: string): string {
+  const digits = phone.replace(/\D/g, "");
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
 export interface WeeklyStats {
   totalActive: number;
   submitted: number;
@@ -23,6 +30,14 @@ export function buildGroupSummaryText(
     lines.push("", `Still need a call: ${pendingCalls.join(", ")}`);
   }
   return lines.join("\n");
+}
+
+export function buildSubmitReminderText(memberName: string, cycleLabel: string): string {
+  return `Hey ${memberName}, friendly reminder to submit your obedience commitment for ${cycleLabel} on the JICF Men's Fellowship accountability app 🙏`;
+}
+
+export function buildCallReminderText(partnerName: string, ownerName: string): string {
+  return `Hey ${partnerName}, friendly reminder to call ${ownerName} this week for their accountability check-in and pray with them 🙏`;
 }
 
 export function buildMinistrySummaryText(
