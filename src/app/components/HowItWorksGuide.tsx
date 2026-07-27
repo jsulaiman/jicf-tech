@@ -40,6 +40,27 @@ function ChartIcon() {
   );
 }
 
+function BellIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="m8.59 13.51 6.83 3.98" />
+      <path d="m15.41 6.51-6.82 3.98" />
+    </svg>
+  );
+}
+
 const STEPS = [
   {
     icon: PencilIcon,
@@ -75,6 +96,20 @@ const STEPS = [
     href: "/tracking",
     cta: "View Tracking",
   },
+  {
+    icon: BellIcon,
+    color: "text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950/40",
+    title: "Remind stragglers",
+    description:
+      "Right from Tracking, send a one-tap WhatsApp reminder straight to whoever hasn't submitted or called yet.",
+  },
+  {
+    icon: ShareIcon,
+    color: "text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-950/40",
+    title: "Share reports",
+    description:
+      "Share your group's weekly summary, or the full ministry-wide report, straight to WhatsApp.",
+  },
 ];
 
 export default function HowItWorksGuide() {
@@ -83,7 +118,7 @@ export default function HowItWorksGuide() {
       <h2 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
         How it works, each week
       </h2>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {STEPS.map((step, i) => {
           const Icon = step.icon;
           return (
